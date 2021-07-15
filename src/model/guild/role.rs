@@ -1,25 +1,25 @@
 use std::cmp::Ordering;
+use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
 
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use async_trait::async_trait;
-#[cfg(feature = "model")]
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 
-#[cfg(feature = "model")]
 use crate::builder::EditRole;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use crate::cache::FromStrAndCache;
-#[cfg(feature = "model")]
 use crate::http::Http;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::internal::prelude::*;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use crate::model::misc::RoleParseError;
 use crate::model::prelude::*;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use crate::utils::parse_role;
+use crate::utils::Colour;
 
 /// Information about a role within a guild. A role represents a set of
 /// permissions, and can be attached to one or multiple users. A role has
@@ -36,13 +36,8 @@ pub struct Role {
     pub guild_id: GuildId,
     /// The colour of the role. This is an ergonomic representation of the inner
     /// value.
-    #[cfg(feature = "utils")]
     #[serde(rename = "color")]
     pub colour: Colour,
-    /// The colour of the role.
-    #[cfg(not(feature = "utils"))]
-    #[serde(rename = "color")]
-    pub colour: u32,
     /// Indicator of whether the role is pinned above lesser roles.
     ///
     /// In the client, this causes [`Member`]s in the role to be seen above
@@ -78,7 +73,6 @@ pub struct Role {
     pub tags: RoleTags,
 }
 
-#[cfg(feature = "model")]
 impl Role {
     /// Deletes the role.
     ///
@@ -183,7 +177,6 @@ impl PartialOrd for Role {
     }
 }
 
-#[cfg(feature = "model")]
 impl RoleId {
     /// Tries to find the [`Role`] by its Id in the cache.
     #[cfg(feature = "cache")]
@@ -216,7 +209,7 @@ impl<'a> From<&'a Role> for RoleId {
     }
 }
 
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 #[async_trait]
 impl FromStrAndCache for Role {
     type Err = RoleParseError;

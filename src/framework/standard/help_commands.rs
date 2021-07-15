@@ -33,13 +33,13 @@
 //!    groups: &[&'static CommandGroup],
 //!    owners: HashSet<UserId>
 //! ) -> CommandResult {
-//! #  #[cfg(all(feature = "cache", feature = "http"))]
+//! #  #[cfg(feature = "cache")]
 //! # {
 //!     let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
 //!     Ok(())
 //! # }
 //! #
-//! # #[cfg(not(all(feature = "cache", feature = "http")))]
+//! # #[cfg(not(feature = "cache"))]
 //! # Ok(())
 //! }
 //!
@@ -50,7 +50,7 @@
 //! The same can be accomplished with no embeds by substituting `with_embeds`
 //! with the [`plain`] function.
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 use std::{
     borrow::Borrow,
     collections::HashSet,
@@ -58,12 +58,12 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 use futures::future::{BoxFuture, FutureExt};
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 use tracing::warn;
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 use super::{
     has_correct_permissions,
     has_correct_roles,
@@ -77,7 +77,7 @@ use super::{
     OnlyIn,
 };
 use crate::builder;
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 use crate::{
     cache::Cache,
     client::Context,
@@ -92,7 +92,7 @@ use crate::{
 
 /// Macro to format a command according to a [`HelpBehaviour`] or
 /// continue to the next command-name upon hiding.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 macro_rules! format_command_name {
     ($behaviour:expr, $command_name:expr) => {
         match $behaviour {
@@ -143,7 +143,7 @@ pub struct Command<'a> {
 #[derive(Clone, Debug, Default)]
 pub struct Suggestions(pub Vec<SuggestedCommandName>);
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 impl Suggestions {
     /// Immutably borrow inner [`Vec`].
     #[inline]
@@ -193,13 +193,13 @@ pub enum CustomisedHelpData<'a> {
 /// Wraps around a `Vec<Vec<T>>` and provides access
 /// via indexing of tuples representing x and y.
 #[derive(Debug)]
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 struct Matrix {
     vec: Vec<usize>,
     width: usize,
 }
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 impl Matrix {
     fn new(columns: usize, rows: usize) -> Matrix {
         Matrix {
@@ -209,7 +209,7 @@ impl Matrix {
     }
 }
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 impl Index<(usize, usize)> for Matrix {
     type Output = usize;
 
@@ -218,7 +218,7 @@ impl Index<(usize, usize)> for Matrix {
     }
 }
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 impl IndexMut<(usize, usize)> for Matrix {
     fn index_mut(&mut self, matrix_entry: (usize, usize)) -> &mut usize {
         &mut self.vec[matrix_entry.1 * self.width + matrix_entry.0]
@@ -227,7 +227,7 @@ impl IndexMut<(usize, usize)> for Matrix {
 
 /// Calculates and returns levenshtein distance between
 /// two passed words.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 pub(crate) fn levenshtein_distance(word_a: &str, word_b: &str) -> usize {
     let len_a = word_a.chars().count();
     let len_b = word_b.chars().count();
@@ -293,14 +293,14 @@ pub async fn has_all_requirements(
 /// Checks if `search_on` starts with `word` and is then cleanly followed by a
 /// `" "`.
 #[inline]
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 fn starts_with_whole_word(search_on: &str, word: &str) -> bool {
     search_on.starts_with(word)
         && search_on.get(word.len()..=word.len()).map_or(false, |slice| slice == " ")
 }
 
 // Decides how a listed help entry shall be displayed.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn check_common_behaviour(
     cache_http: impl CacheHttp + AsRef<Cache>,
     msg: &Message,
@@ -343,7 +343,7 @@ async fn check_common_behaviour(
     .unwrap_or(HelpBehaviour::Nothing)
 }
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn check_command_behaviour(
     ctx: &Context,
     msg: &Message,
@@ -376,7 +376,7 @@ async fn check_command_behaviour(
 // This function will recursively go through all commands and
 // their sub-commands, trying to find `name`.
 // Similar commands will be collected into `similar_commands`.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::too_many_arguments)]
 fn nested_commands_search<'rec, 'a: 'rec>(
     ctx: &'rec Context,
@@ -520,7 +520,7 @@ fn nested_commands_search<'rec, 'a: 'rec>(
 // This function will recursively go through all groups and their groups,
 // trying to find `name`.
 // Similar commands will be collected into `similar_commands`.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 fn nested_group_command_search<'rec, 'a: 'rec>(
     ctx: &'rec Context,
     msg: &'rec Message,
@@ -1004,7 +1004,7 @@ pub async fn create_customised_help_data<'a>(
 /// Flattens a group with all its nested sub-groups into the passed `group_text`
 /// buffer.
 /// If `nest_level` is `0`, this function will skip the group's name.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 fn flatten_group_to_string(
     group_text: &mut String,
     group: &GroupCommandsPair,
@@ -1063,7 +1063,7 @@ fn flatten_group_to_string(
 /// Flattens a group with all its nested sub-groups into the passed `group_text`
 /// buffer respecting the plain help format.
 /// If `nest_level` is `0`, this function will skip the group's name.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::let_underscore_must_use)]
 fn flatten_group_to_plain_string(
     group_text: &mut String,
@@ -1102,7 +1102,7 @@ fn flatten_group_to_plain_string(
 }
 
 /// Sends an embed listing all groups with their commands.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn send_grouped_commands_embed(
     http: impl AsRef<Http>,
     help_options: &HelpOptions,
@@ -1129,7 +1129,7 @@ async fn send_grouped_commands_embed(
 }
 
 /// Sends embed showcasing information about a single command.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn send_single_command_embed(
     http: impl AsRef<Http>,
     help_options: &HelpOptions,
@@ -1210,7 +1210,7 @@ async fn send_single_command_embed(
 }
 
 /// Sends embed listing commands that are similar to the sent one.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn send_suggestion_embed(
     http: impl AsRef<Http>,
     channel_id: ChannelId,
@@ -1233,7 +1233,7 @@ async fn send_suggestion_embed(
 }
 
 /// Sends an embed explaining fetching commands failed.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 async fn send_error_embed(
     http: impl AsRef<Http>,
     channel_id: ChannelId,
@@ -1289,7 +1289,7 @@ async fn send_error_embed(
 ///
 /// [`StandardFramework::help`]: crate::framework::standard::StandardFramework::help
 /// [`ChannelId::send_message`]: crate::model::id::ChannelId::send_message
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::implicit_hasher)]
 pub async fn with_embeds(
     ctx: &Context,
@@ -1359,7 +1359,7 @@ pub async fn with_embeds(
 }
 
 /// Turns grouped commands into a [`String`] taking plain help format into account.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::let_underscore_must_use)]
 fn grouped_commands_to_plain_string(
     help_options: &HelpOptions,
@@ -1380,7 +1380,7 @@ fn grouped_commands_to_plain_string(
 }
 
 /// Turns a single command into a [`String`] taking plain help format into account.
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::let_underscore_must_use)]
 fn single_command_to_plain_string(help_options: &HelpOptions, command: &Command<'_>) -> String {
     let mut result = String::default();
@@ -1488,7 +1488,7 @@ fn single_command_to_plain_string(help_options: &HelpOptions, command: &Command<
 /// Returns the same errors as [`ChannelId::send_message`].
 ///
 /// [`ChannelId::send_message`]: crate::model::id::ChannelId::send_message
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 #[allow(clippy::implicit_hasher)]
 pub async fn plain(
     ctx: &Context,
@@ -1522,7 +1522,7 @@ pub async fn plain(
 }
 
 #[cfg(test)]
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 mod levenshtein_tests {
     use super::levenshtein_distance;
 
@@ -1575,7 +1575,7 @@ mod levenshtein_tests {
 }
 
 #[cfg(test)]
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 mod matrix_tests {
     use super::Matrix;
 

@@ -2,19 +2,15 @@
 
 use chrono::{DateTime, Utc};
 
-use super::prelude::*;
-#[cfg(all(feature = "cache", feature = "model"))]
-use super::{utils as model_utils, Permissions};
-#[cfg(feature = "model")]
 use crate::builder::CreateInvite;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http};
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
-#[cfg(feature = "model")]
-use crate::utils;
+use crate::json::hashmap_to_json_map;
+use crate::model::prelude::*;
+#[cfg(feature = "cache")]
+use crate::model::utils as model_utils;
 
 /// Information about an invite code.
 ///
@@ -46,7 +42,6 @@ pub struct Invite {
     pub inviter: Option<User>,
 }
 
-#[cfg(feature = "model")]
 impl Invite {
     /// Creates an invite for a [`GuildChannel`], providing a builder so that
     /// fields may optionally be set.
@@ -88,7 +83,7 @@ impl Invite {
             }
         }
 
-        let map = utils::hashmap_to_json_map(f(CreateInvite::default()).0);
+        let map = hashmap_to_json_map(f(CreateInvite::default()).0);
 
         cache_http.http().create_invite(channel_id.0, &map, None).await
     }
@@ -134,12 +129,7 @@ impl Invite {
     /// Can also return an [`Error::Json`] if there is an error
     /// deserializing the API response.
     pub async fn get(http: impl AsRef<Http>, code: &str, stats: bool) -> Result<Invite> {
-        let mut invite = code;
-
-        #[cfg(feature = "utils")]
-        {
-            invite = crate::utils::parse_invite(invite);
-        }
+        let invite = crate::utils::parse_invite(code);
 
         http.as_ref().get_invite(invite, stats).await
     }
@@ -210,7 +200,6 @@ pub struct InviteGuild {
     pub voice_channel_count: Option<u64>,
 }
 
-#[cfg(feature = "model")]
 impl InviteGuild {
     /// Returns the Id of the shard associated with the guild.
     ///
@@ -220,7 +209,7 @@ impl InviteGuild {
     /// **Note**: When the cache is enabled, this function unlocks the cache to
     /// retrieve the total number of shards in use. If you already have the
     /// total, consider using [`utils::shard_id`].
-    #[cfg(all(feature = "cache", feature = "utils"))]
+    #[cfg(feature = "cache")]
     #[inline]
     pub async fn shard_id(&self, cache: impl AsRef<Cache>) -> u64 {
         self.id.shard_id(&cache).await
@@ -246,7 +235,7 @@ impl InviteGuild {
     ///
     /// assert_eq!(guild.shard_id(17), 7);
     /// ```
-    #[cfg(all(feature = "utils", not(feature = "cache")))]
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub async fn shard_id(&self, shard_count: u64) -> u64 {
         self.id.shard_id(shard_count).await
@@ -291,7 +280,6 @@ pub struct RichInvite {
     pub uses: u64,
 }
 
-#[cfg(feature = "model")]
 impl RichInvite {
     /// Deletes the invite.
     ///

@@ -364,7 +364,6 @@ generate_get_permission_names! {
     view_audit_log: "View Audit Log"
 }
 
-#[cfg(feature = "model")]
 impl Permissions {
     /// Shorthand for checking that the set of permissions contains the
     /// [Add Reactions] permission.

@@ -112,8 +112,6 @@ pub enum MessageParseError {
     Malformed,
     /// When message data retrieval via HTTP failed
     Http(SerenityError),
-    /// When the `gateway` feature is disabled and the required information was not in cache.
-    HttpNotAvailable,
 }
 
 impl std::error::Error for MessageParseError {
@@ -121,7 +119,6 @@ impl std::error::Error for MessageParseError {
         match self {
             Self::Malformed => None,
             Self::Http(e) => Some(e),
-            Self::HttpNotAvailable => None,
         }
     }
 }
@@ -133,10 +130,6 @@ impl std::fmt::Display for MessageParseError {
                 write!(f, "Provided string did not adhere to any known guild message format")
             },
             Self::Http(e) => write!(f, "Failed to request message data via HTTP: {}", e),
-            Self::HttpNotAvailable => write!(
-                f,
-                "Gateway feature is disabled and the required information was not in cache"
-            ),
         }
     }
 }
@@ -179,10 +172,6 @@ impl Parse for Message {
             return Ok(msg);
         }
 
-        if cfg!(feature = "http") {
-            ctx.http.get_message(channel_id.0, message_id.0).await.map_err(MessageParseError::Http)
-        } else {
-            Err(MessageParseError::HttpNotAvailable)
-        }
+        ctx.http.get_message(channel_id.0, message_id.0).await.map_err(MessageParseError::Http)
     }
 }

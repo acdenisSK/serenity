@@ -1,23 +1,29 @@
 //! All the events this library handles.
 
+use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::fmt::{self, Formatter, Result as FmtResult};
 #[cfg(feature = "cache")]
 use std::mem;
-use std::{collections::HashMap, fmt};
 
 #[cfg(feature = "cache")]
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use serde::de::Error as DeError;
+use serde::de::{Deserialize, Deserializer, Error as DeError, Visitor};
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
-use super::prelude::*;
-use super::utils::deserialize_emojis;
 #[cfg(feature = "cache")]
 use crate::cache::{Cache, CacheUpdate};
 use crate::internal::prelude::*;
 #[cfg(feature = "unstable_discord_api")]
 use crate::model::interactions::{application_command::ApplicationCommand, Interaction};
+use crate::model::prelude::*;
+use crate::model::utils::{
+    deserialize_emojis,
+    deserialize_stickers,
+    serialize_emojis,
+    serialize_stickers,
+};
 use crate::{constants::OpCode, json::prelude::*};
 
 /// Event data for the channel creation event.
@@ -121,7 +127,7 @@ pub struct ChannelDeleteEvent {
     pub channel: Channel,
 }
 
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 #[async_trait]
 impl CacheUpdate for ChannelDeleteEvent {
     type Output = ();

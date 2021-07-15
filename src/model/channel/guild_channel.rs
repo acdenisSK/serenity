@@ -1,15 +1,12 @@
-#[cfg(feature = "model")]
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-#[cfg(feature = "model")]
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 #[cfg(feature = "cache")]
 use futures::stream::StreamExt;
 
-#[cfg(feature = "model")]
 use crate::builder::EditChannel;
-#[cfg(feature = "model")]
 use crate::builder::{CreateInvite, CreateMessage, EditMessage, EditVoiceState, GetMessages};
 use crate::builder::{CreateStageInstance, EditStageInstance};
 #[cfg(feature = "cache")]
@@ -23,15 +20,12 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
 use crate::http::AttachmentType;
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http, Typing};
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::internal::prelude::*;
-#[cfg(all(feature = "model", feature = "utils"))]
-use crate::utils as serenity_utils;
-use crate::{json::from_number, model::prelude::*};
+use crate::json::{from_number, hashmap_to_json_map};
+use crate::model::prelude::*;
 
 /// Represents a guild's text, news, or voice channel. Some methods are available
 /// only for voice channels and some are only available for text channels.
@@ -129,7 +123,6 @@ pub struct GuildChannel {
     pub default_auto_archive_duration: Option<u64>,
 }
 
-#[cfg(feature = "model")]
 impl GuildChannel {
     /// Whether or not this channel is text-based, meaning that
     /// it is possible to send messages.
@@ -175,7 +168,6 @@ impl GuildChannel {
     ///
     /// [Create Instant Invite]: Permissions::CREATE_INVITE
     #[inline]
-    #[cfg(feature = "utils")]
     pub async fn create_invite<F>(&self, cache_http: impl CacheHttp, f: F) -> Result<RichInvite>
     where
         F: FnOnce(&mut CreateInvite) -> &mut CreateInvite,
@@ -417,7 +409,6 @@ impl GuildChannel {
     /// if the current user lacks permission to edit the channel.
     ///
     /// Otherwise returns [`Error::Http`] if the current user lacks permission.
-    #[cfg(feature = "utils")]
     pub async fn edit<F>(&mut self, cache_http: impl CacheHttp, f: F) -> Result<()>
     where
         F: FnOnce(&mut EditChannel) -> &mut EditChannel,
@@ -441,7 +432,7 @@ impl GuildChannel {
 
         let mut edit_channel = EditChannel::default();
         f(&mut edit_channel);
-        let edited = serenity_utils::hashmap_to_json_map(edit_channel.0);
+        let edited = hashmap_to_json_map(edit_channel.0);
 
         *self = cache_http.http().edit_channel(self.id.0, &edited, None).await?;
 
@@ -597,7 +588,7 @@ impl GuildChannel {
 
         voice_state.0.insert("channel_id", Value::from(self.id.0.to_string()));
 
-        let map = serenity_utils::hashmap_to_json_map(voice_state.0);
+        let map = hashmap_to_json_map(voice_state.0);
 
         if let Some(id) = user_id {
             http.as_ref().edit_voice_state(self.guild_id.0, id.into().0, &map).await

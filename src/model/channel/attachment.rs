@@ -1,7 +1,5 @@
-#[cfg(feature = "model")]
 use reqwest::Client as ReqwestClient;
 
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
 use crate::model::id::AttachmentId;
 
@@ -32,7 +30,6 @@ pub struct Attachment {
     pub content_type: Option<String>,
 }
 
-#[cfg(feature = "model")]
 impl Attachment {
     /// If this attachment is an image, then a tuple of the width and height
     /// in pixels is returned.

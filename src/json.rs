@@ -2,6 +2,9 @@
 //! It encapsulates the differences between serde_json and simd-json to allow
 //! ignoring those in the rest of the codebase.
 
+use std::collections::HashMap;
+use std::hash::Hash;
+
 use serde::de::{Deserialize, DeserializeOwned};
 use serde::ser::Serialize;
 
@@ -28,6 +31,19 @@ pub type JsonMap = simd_json::owned::Object;
 pub const NULL: Value = Value::Null;
 #[cfg(feature = "simd-json")]
 pub const NULL: Value = Value::Static(simd_json::StaticNode::Null);
+
+pub(crate) fn hashmap_to_json_map<T>(map: HashMap<T, Value>) -> JsonMap
+where
+    T: Eq + Hash + ToString,
+{
+    let mut json_map = JsonMap::new();
+
+    for (key, value) in map {
+        json_map.insert(key.to_string(), value);
+    }
+
+    json_map
+}
 
 #[cfg(not(feature = "simd-json"))]
 pub(crate) fn to_vec<T>(v: &T) -> Result<Vec<u8>>

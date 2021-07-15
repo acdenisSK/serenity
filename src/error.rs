@@ -7,7 +7,6 @@ use std::{
 
 #[cfg(feature = "gateway")]
 use async_tungstenite::tungstenite::error::Error as TungsteniteError;
-#[cfg(feature = "http")]
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError};
 use serde_json::Error as JsonError;
 use tracing::instrument;
@@ -16,7 +15,6 @@ use tracing::instrument;
 use crate::client::ClientError;
 #[cfg(feature = "gateway")]
 use crate::gateway::GatewayError;
-#[cfg(feature = "http")]
 use crate::http::HttpError;
 use crate::internal::prelude::*;
 #[cfg(all(
@@ -99,7 +97,6 @@ pub enum Error {
     /// An error from the [`http`] module.
     ///
     /// [`http`]: crate::http
-    #[cfg(feature = "http")]
     Http(Box<HttpError>),
     /// An error occuring in rustls
     #[cfg(all(
@@ -175,21 +172,18 @@ impl From<TungsteniteError> for Error {
     }
 }
 
-#[cfg(feature = "http")]
 impl From<HttpError> for Error {
     fn from(e: HttpError) -> Error {
         Error::Http(Box::new(e))
     }
 }
 
-#[cfg(feature = "http")]
 impl From<InvalidHeaderValue> for Error {
     fn from(e: InvalidHeaderValue) -> Error {
         HttpError::InvalidHeader(e).into()
     }
 }
 
-#[cfg(feature = "http")]
 impl From<ReqwestError> for Error {
     fn from(e: ReqwestError) -> Error {
         HttpError::Request(e).into()
@@ -214,7 +208,6 @@ impl Display for Error {
             Error::Client(inner) => fmt::Display::fmt(&inner, f),
             #[cfg(feature = "gateway")]
             Error::Gateway(inner) => fmt::Display::fmt(&inner, f),
-            #[cfg(feature = "http")]
             Error::Http(inner) => fmt::Display::fmt(&inner, f),
             #[cfg(all(feature = "gateway", not(feature = "native_tls_backend_marker")))]
             Error::Rustls(inner) => fmt::Display::fmt(&inner, f),
@@ -237,7 +230,6 @@ impl StdError for Error {
             Error::Client(inner) => Some(inner),
             #[cfg(feature = "gateway")]
             Error::Gateway(inner) => Some(inner),
-            #[cfg(feature = "http")]
             Error::Http(inner) => Some(inner),
             #[cfg(all(
                 feature = "gateway",

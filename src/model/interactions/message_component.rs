@@ -1,9 +1,10 @@
 use std::convert::TryFrom;
+use std::result::Result as StdResult;
 
-use serde::de::Error as DeError;
+use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::{Serialize, Serializer};
 #[cfg(feature = "simd-json")]
-use simd_json::ValueAccess;
+use simd_json::{Mutable, ValueAccess};
 
 use super::prelude::*;
 use crate::builder::{
@@ -11,10 +12,11 @@ use crate::builder::{
     CreateInteractionResponseFollowup,
     EditInteractionResponse,
 };
+use crate::error::Error;
 use crate::http::Http;
-use crate::json::{from_number, from_value, Value};
+use crate::json::{from_number, from_value, hashmap_to_json_map, JsonMap, Value};
 use crate::model::interactions::InteractionType;
-use crate::utils;
+use crate::Result;
 
 /// An interaction triggered by a message component.
 #[derive(Clone, Debug, Serialize)]
@@ -85,7 +87,7 @@ impl MessageComponentInteraction {
         let mut interaction_response = CreateInteractionResponse::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_content_length(&map)?;
         Message::check_embed_length(&map)?;
@@ -123,7 +125,7 @@ impl MessageComponentInteraction {
         let mut interaction_response = EditInteractionResponse::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_content_length(&map)?;
         Message::check_embed_length(&map)?;
@@ -167,7 +169,7 @@ impl MessageComponentInteraction {
         let mut interaction_response = CreateInteractionResponseFollowup::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_content_length(&map)?;
         Message::check_embed_length(&map)?;
@@ -202,7 +204,7 @@ impl MessageComponentInteraction {
         let mut interaction_response = CreateInteractionResponseFollowup::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_content_length(&map)?;
         Message::check_embed_length(&map)?;

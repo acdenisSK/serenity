@@ -3,8 +3,8 @@ use std::collections::HashMap;
 #[cfg(feature = "simd-json")]
 use simd_json::Mutable;
 
-use crate::json::{from_number, json, Value};
-use crate::{model::interactions::application_command::ApplicationCommandOptionType, utils};
+use crate::json::{from_number, hashmap_to_json_map, json, Value};
+use crate::model::interactions::application_command::ApplicationCommandOptionType;
 
 /// A builder for creating a new [`ApplicationCommandOption`].
 ///
@@ -98,7 +98,7 @@ impl CreateApplicationCommandOption {
     }
 
     pub fn add_sub_option(&mut self, sub_option: CreateApplicationCommandOption) -> &mut Self {
-        let new_option = utils::hashmap_to_json_map(sub_option.0);
+        let new_option = hashmap_to_json_map(sub_option.0);
         let options = self.0.entry("options").or_insert_with(|| Value::from(Vec::<Value>::new()));
         let opt_arr = options.as_array_mut().expect("Must be an array");
         opt_arr.push(Value::from(new_option));
@@ -159,7 +159,7 @@ impl CreateApplicationCommand {
     ///
     /// **Note**: Application commands can only have up to 10 options.
     pub fn add_option(&mut self, option: CreateApplicationCommandOption) -> &mut Self {
-        let new_option = utils::hashmap_to_json_map(option.0);
+        let new_option = hashmap_to_json_map(option.0);
         let options = self.0.entry("options").or_insert_with(|| Value::from(Vec::<Value>::new()));
         let opt_arr = options.as_array_mut().expect("Must be an array");
         opt_arr.push(Value::from(new_option));
@@ -173,7 +173,7 @@ impl CreateApplicationCommand {
     pub fn set_options(&mut self, options: Vec<CreateApplicationCommandOption>) -> &mut Self {
         let new_options = options
             .into_iter()
-            .map(|f| Value::from(utils::hashmap_to_json_map(f.0)))
+            .map(|f| Value::from(hashmap_to_json_map(f.0)))
             .collect::<Vec<Value>>();
 
         self.0.insert("options", Value::from(new_options));
@@ -200,7 +200,7 @@ impl CreateApplicationCommands {
 
     /// Adds a new application command.
     pub fn add_application_command(&mut self, command: CreateApplicationCommand) -> &mut Self {
-        let new_data = Value::from(utils::hashmap_to_json_map(command.0));
+        let new_data = Value::from(hashmap_to_json_map(command.0));
 
         self.0.push(new_data);
 
@@ -214,7 +214,7 @@ impl CreateApplicationCommands {
     ) -> &mut Self {
         let new_application_command = commands
             .into_iter()
-            .map(|f| Value::from(utils::hashmap_to_json_map(f.0)))
+            .map(|f| Value::from(hashmap_to_json_map(f.0)))
             .collect::<Vec<Value>>();
 
         for application_command in new_application_command {

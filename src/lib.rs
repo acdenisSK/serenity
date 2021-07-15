@@ -80,13 +80,14 @@ extern crate bytes_compat as bytes;
 #[macro_use]
 mod internal;
 
+pub mod builder;
 pub mod constants;
+pub mod http;
 pub mod json;
 pub mod model;
 pub mod prelude;
+pub mod utils;
 
-#[cfg(feature = "builder")]
-pub mod builder;
 #[cfg(feature = "cache")]
 pub mod cache;
 #[cfg(feature = "client")]
@@ -98,10 +99,6 @@ pub mod collector;
 pub mod framework;
 #[cfg(feature = "gateway")]
 pub mod gateway;
-#[cfg(feature = "http")]
-pub mod http;
-#[cfg(feature = "utils")]
-pub mod utils;
 
 mod error;
 

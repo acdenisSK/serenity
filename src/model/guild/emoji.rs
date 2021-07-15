@@ -1,18 +1,18 @@
 use std::fmt::{Display, Formatter, Result as FmtResult, Write as FmtWrite};
 
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 use crate::http::Http;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::internal::prelude::*;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::json::json;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::model::id::GuildId;
 use crate::model::id::{EmojiId, RoleId};
 use crate::model::user::User;
 use crate::model::utils::default_true;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::model::ModelError;
 
 /// Represents a custom guild emoji, which can either be created using the API,
@@ -52,7 +52,6 @@ pub struct Emoji {
     pub user: Option<User>,
 }
 
-#[cfg(feature = "model")]
 impl Emoji {
     /// Deletes the emoji.
     /// This method requires the cache to fetch the guild ID.

@@ -43,20 +43,8 @@ pub mod user;
 pub mod voice;
 pub mod webhook;
 
-use std::{
-    collections::HashMap,
-    fmt::{Display, Formatter, Result as FmtResult},
-    result::Result as StdResult,
-};
-
-use serde::de::Visitor;
-use serde::{Deserialize, Deserializer};
 #[cfg(feature = "voice-model")]
 pub use serenity_voice_model as voice_gateway;
 
 pub use self::error::Error as ModelError;
 pub use self::permissions::Permissions;
-use self::utils::*;
-use crate::internal::prelude::*;
-#[cfg(feature = "utils")]
-use crate::utils::Colour;

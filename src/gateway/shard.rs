@@ -297,7 +297,6 @@ impl Shard {
     /// # use serenity::client::bridge::gateway::GatewayIntents;
     /// # use std::sync::Arc;
     /// #
-    /// # #[cfg(feature = "model")]
     /// # async fn run() {
     /// #
     /// # let mutex = Arc::new(Mutex::new("".to_string()));

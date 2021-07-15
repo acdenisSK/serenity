@@ -1,8 +1,11 @@
-use futures::stream::Stream;
+use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[cfg(feature = "model")]
+use futures::stream::Stream;
+#[cfg(feature = "simd-json")]
+use simd_json::ValueAccess;
+
 use crate::builder::CreateChannel;
-#[cfg(feature = "model")]
 use crate::builder::{
     CreateSticker,
     EditGuild,
@@ -12,7 +15,7 @@ use crate::builder::{
     EditRole,
     EditSticker,
 };
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -23,15 +26,12 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::{CacheHttp, Http};
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
-#[cfg(feature = "model")]
-use crate::json::json;
-#[cfg(feature = "model")]
-use crate::utils;
-#[cfg(all(feature = "model", feature = "unstable_discord_api"))]
+use crate::json::{from_number, hashmap_to_json_map, json, JsonMap, Value, NULL};
+use crate::model::prelude::*;
+#[cfg(feature = "unstable_discord_api")]
 use crate::{
     builder::{
         CreateApplicationCommand,
@@ -41,9 +41,7 @@ use crate::{
     },
     model::interactions::application_command::{ApplicationCommand, ApplicationCommandPermission},
 };
-use crate::{json::prelude::*, model::prelude::*};
 
-#[cfg(feature = "model")]
 impl GuildId {
     /// Ban a [`User`] from the guild, deleting a number of
     /// days' worth of messages (`dmd`) between the range 0 and 7.
@@ -216,7 +214,7 @@ impl GuildId {
         let mut builder = CreateChannel::default();
         f(&mut builder);
 
-        let map = utils::hashmap_to_json_map(builder.0);
+        let map = hashmap_to_json_map(builder.0);
 
         http.as_ref().create_channel(self.0, &map, None).await
     }
@@ -300,7 +298,7 @@ impl GuildId {
     {
         let mut edit_role = EditRole::default();
         f(&mut edit_role);
-        let map = utils::hashmap_to_json_map(edit_role.0);
+        let map = hashmap_to_json_map(edit_role.0);
 
         let role = http.as_ref().create_role(self.0, &map, None).await?;
 
@@ -328,7 +326,7 @@ impl GuildId {
     {
         let mut create_sticker = CreateSticker::default();
         f(&mut create_sticker);
-        let map = utils::hashmap_to_json_map(create_sticker.0);
+        let map = hashmap_to_json_map(create_sticker.0);
 
         let file = match create_sticker.1 {
             Some(f) => f,
@@ -454,7 +452,7 @@ impl GuildId {
     {
         let mut edit_guild = EditGuild::default();
         f(&mut edit_guild);
-        let map = utils::hashmap_to_json_map(edit_guild.0);
+        let map = hashmap_to_json_map(edit_guild.0);
 
         http.as_ref().edit_guild(self.0, &map, None).await
     }
@@ -517,7 +515,7 @@ impl GuildId {
     {
         let mut edit_member = EditMember::default();
         f(&mut edit_member);
-        let map = utils::hashmap_to_json_map(edit_member.0);
+        let map = hashmap_to_json_map(edit_member.0);
 
         http.as_ref().edit_member(self.0, user_id.into().0, &map, None).await
     }
@@ -575,7 +573,7 @@ impl GuildId {
     {
         let mut edit_role = EditRole::default();
         f(&mut edit_role);
-        let map = utils::hashmap_to_json_map(edit_role.0);
+        let map = hashmap_to_json_map(edit_role.0);
 
         http.as_ref().edit_role(self.0, role_id.into().0, &map, None).await
     }
@@ -610,7 +608,7 @@ impl GuildId {
     {
         let mut edit_sticker = EditSticker::default();
         f(&mut edit_sticker);
-        let map = utils::hashmap_to_json_map(edit_sticker.0);
+        let map = hashmap_to_json_map(edit_sticker.0);
 
         http.as_ref().edit_sticker(self.0, sticker_id.into().0, &map).await
     }
@@ -663,7 +661,7 @@ impl GuildId {
         f(&mut map);
 
         http.as_ref()
-            .edit_guild_welcome_screen(self.0, &Value::from(utils::hashmap_to_json_map(map.0)))
+            .edit_guild_welcome_screen(self.0, &Value::from(hashmap_to_json_map(map.0)))
             .await
     }
 
@@ -683,9 +681,7 @@ impl GuildId {
         let mut map = EditGuildWidget::default();
         f(&mut map);
 
-        http.as_ref()
-            .edit_guild_widget(self.0, &Value::from(utils::hashmap_to_json_map(map.0)))
-            .await
+        http.as_ref().edit_guild_widget(self.0, &Value::from(hashmap_to_json_map(map.0))).await
     }
 
     /// Gets all of the guild's roles over the REST API.
@@ -1097,7 +1093,7 @@ impl GuildId {
     /// **Note**: When the cache is enabled, this function unlocks the cache to
     /// retrieve the total number of shards in use. If you already have the
     /// total, consider using [`utils::shard_id`].
-    #[cfg(all(feature = "cache", feature = "utils"))]
+    #[cfg(feature = "cache")]
     #[inline]
     pub async fn shard_id(self, cache: impl AsRef<Cache>) -> u64 {
         crate::utils::shard_id(self.0, cache.as_ref().shard_count().await)
@@ -1126,7 +1122,7 @@ impl GuildId {
     /// assert_eq!(guild_id.shard_id(17).await, 7);
     /// # }
     /// ```
-    #[cfg(all(feature = "utils", not(feature = "cache")))]
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub async fn shard_id(self, shard_count: u64) -> u64 {
         crate::utils::shard_id(self.0, shard_count)
@@ -1323,7 +1319,7 @@ impl GuildId {
             .edit_guild_application_command_permissions(
                 self.0,
                 command_id.into(),
-                &Value::from(utils::hashmap_to_json_map(map.0)),
+                &Value::from(hashmap_to_json_map(map.0)),
             )
             .await
     }
@@ -1512,7 +1508,6 @@ impl<'a> From<&'a Guild> for GuildId {
 
 /// A helper class returned by [`GuildId::members_iter`]
 #[derive(Clone, Debug)]
-#[cfg(feature = "model")]
 pub struct MembersIter<H: AsRef<Http>> {
     guild_id: GuildId,
     http: H,
@@ -1521,7 +1516,6 @@ pub struct MembersIter<H: AsRef<Http>> {
     tried_fetch: bool,
 }
 
-#[cfg(feature = "model")]
 impl<H: AsRef<Http>> MembersIter<H> {
     fn new(guild_id: GuildId, http: H) -> MembersIter<H> {
         MembersIter {
@@ -1615,7 +1609,7 @@ pub enum GuildWidgetStyle {
 }
 
 impl Display for GuildWidgetStyle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             GuildWidgetStyle::Shield => write!(f, "shield"),
             GuildWidgetStyle::Banner1 => write!(f, "banner1"),

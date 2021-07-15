@@ -1,15 +1,12 @@
 //! Models relating to Discord channels.
 
 use std::fmt::Display;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use std::fmt::Write;
-#[cfg(feature = "model")]
 use std::result::Result as StdResult;
 
-#[cfg(feature = "model")]
 use bitflags::__impl_bitflags;
 use chrono::{DateTime, Utc};
-#[cfg(feature = "model")]
 use serde::{
     de::{Deserialize, Deserializer},
     ser::{Serialize, Serializer},
@@ -17,9 +14,8 @@ use serde::{
 #[cfg(feature = "simd-json")]
 use simd_json::ValueAccess;
 
-#[cfg(all(feature = "model", feature = "utils"))]
 use crate::builder::{CreateEmbed, EditMessage};
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -27,15 +23,14 @@ use crate::client::bridge::gateway::ShardMessenger;
 use crate::collector::{CollectComponentInteraction, ComponentInteractionCollectorBuilder};
 #[cfg(feature = "collector")]
 use crate::collector::{CollectReaction, ReactionCollectorBuilder};
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::{CacheHttp, Http};
-use crate::json::Value;
+use crate::json::{hashmap_to_json_map, JsonMap, Value};
 #[cfg(feature = "unstable_discord_api")]
 use crate::model::interactions::{message_component::ActionRow, MessageInteraction};
 use crate::model::prelude::*;
-#[cfg(feature = "model")]
 use crate::model::utils::U64Visitor;
-#[cfg(feature = "model")]
+use crate::Result;
 use crate::{
     constants,
     model::{
@@ -140,7 +135,6 @@ pub struct Message {
     pub components: Vec<ActionRow>,
 }
 
-#[cfg(feature = "model")]
 impl Message {
     /// Crossposts this message.
     ///
@@ -199,7 +193,7 @@ impl Message {
 
     /// A util function for determining whether this message was sent by someone else, or the
     /// bot.
-    #[cfg(all(feature = "cache", feature = "utils"))]
+    #[cfg(feature = "cache")]
     pub async fn is_own(&self, cache: impl AsRef<Cache>) -> bool {
         self.author.id == cache.as_ref().current_user().await.id
     }
@@ -333,7 +327,6 @@ impl Message {
     ///
     /// [`EditMessage`]: crate::builder::EditMessage
     /// [`the limit`]: crate::builder::EditMessage::content
-    #[cfg(feature = "utils")]
     pub async fn edit<F>(&mut self, cache_http: impl CacheHttp, f: F) -> Result<()>
     where
         F: for<'a, 'b> FnOnce(&'a mut EditMessage<'b>) -> &'a mut EditMessage<'b>,
@@ -358,7 +351,7 @@ impl Message {
 
         f(&mut builder);
 
-        let map = crate::utils::hashmap_to_json_map(builder.0);
+        let map = hashmap_to_json_map(builder.0);
 
         *self = cache_http
             .http()
@@ -768,7 +761,6 @@ impl Message {
     /// Otherwise returns [`Error::Http`] if the current user lacks permission.
     ///
     /// [Manage Messages]: Permissions::MANAGE_MESSAGES
-    #[cfg(feature = "utils")]
     pub async fn suppress_embeds(&mut self, cache_http: impl CacheHttp) -> Result<()> {
         #[cfg(feature = "cache")]
         {
@@ -790,7 +782,7 @@ impl Message {
         let mut suppress = EditMessage::default();
         suppress.suppress_embeds(true);
 
-        let map = crate::utils::hashmap_to_json_map(suppress.0);
+        let map = hashmap_to_json_map(suppress.0);
 
         *self =
             cache_http.http().edit_message(self.channel_id.0, self.id.0, &Value::from(map)).await?;
@@ -1226,12 +1218,10 @@ pub struct ChannelMention {
 
 /// Describes extra features of the message.
 #[derive(Copy, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
-#[cfg_attr(not(feature = "model"), derive(Debug, Deserialize, Serialize))]
 pub struct MessageFlags {
     pub bits: u64,
 }
 
-#[cfg(feature = "model")]
 __impl_bitflags! {
     MessageFlags: u64 {
         /// This message has been published to subscribed channels (via Channel Following).
@@ -1253,7 +1243,6 @@ __impl_bitflags! {
     }
 }
 
-#[cfg(feature = "model")]
 impl<'de> Deserialize<'de> for MessageFlags {
     fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
     where
@@ -1263,7 +1252,6 @@ impl<'de> Deserialize<'de> for MessageFlags {
     }
 }
 
-#[cfg(feature = "model")]
 impl Serialize for MessageFlags {
     fn serialize<S>(&self, serializer: S) -> StdResult<S::Ok, S::Error>
     where
@@ -1273,7 +1261,6 @@ impl Serialize for MessageFlags {
     }
 }
 
-#[cfg(feature = "model")]
 impl MessageId {
     /// Returns a link referencing this message. When clicked, users will jump to the message.
     /// The link will be valid for messages in either private channels or guilds.

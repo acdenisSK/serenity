@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::de::Error as DeError;
 use serde::{Deserialize, Deserializer};
 #[cfg(feature = "simd-json")]
-use simd_json::ValueAccess;
+use simd_json::{Mutable, ValueAccess};
 
 use super::prelude::*;
 use crate::builder::{
@@ -15,7 +15,7 @@ use crate::builder::{
 };
 use crate::http::Http;
 use crate::internal::prelude::StdResult;
-use crate::json::{from_number, JsonMap, Value};
+use crate::json::{from_number, hashmap_to_json_map, JsonMap, Value};
 use crate::model::channel::PartialChannel;
 use crate::model::guild::{Member, PartialMember, Role};
 use crate::model::id::{
@@ -37,7 +37,7 @@ use crate::model::utils::{
     deserialize_roles_map,
     deserialize_users,
 };
-use crate::utils;
+use crate::Result;
 
 /// An interaction when a user invokes a slash command.
 #[derive(Clone, Debug, Serialize)]
@@ -105,7 +105,7 @@ impl ApplicationCommandInteraction {
         let mut interaction_response = CreateInteractionResponse::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_lengths(&map)?;
 
@@ -142,7 +142,7 @@ impl ApplicationCommandInteraction {
         let mut interaction_response = EditInteractionResponse::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_lengths(&map)?;
 
@@ -185,7 +185,7 @@ impl ApplicationCommandInteraction {
         let mut interaction_response = CreateInteractionResponseFollowup::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_lengths(&map)?;
 
@@ -229,7 +229,7 @@ impl ApplicationCommandInteraction {
         let mut interaction_response = CreateInteractionResponseFollowup::default();
         f(&mut interaction_response);
 
-        let map = utils::hashmap_to_json_map(interaction_response.0);
+        let map = hashmap_to_json_map(interaction_response.0);
 
         Message::check_lengths(&map)?;
 
@@ -769,7 +769,7 @@ impl ApplicationCommand {
     {
         let mut create_application_command = CreateApplicationCommand::default();
         f(&mut create_application_command);
-        utils::hashmap_to_json_map(create_application_command.0)
+        hashmap_to_json_map(create_application_command.0)
     }
 }
 

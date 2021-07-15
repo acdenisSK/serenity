@@ -1,11 +1,10 @@
-#[cfg(feature = "model")]
+use std::collections::HashMap;
+
 use crate::builder::EditChannel;
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http};
-use crate::json::from_number;
+use crate::json::{from_number, hashmap_to_json_map, Value};
 use crate::model::prelude::*;
-#[cfg(all(feature = "model", feature = "utils"))]
-use crate::utils as serenity_utils;
+use crate::Result;
 
 /// A category of [`GuildChannel`]s.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -34,7 +33,6 @@ pub struct ChannelCategory {
     pub permission_overwrites: Vec<PermissionOverwrite>,
 }
 
-#[cfg(feature = "model")]
 impl ChannelCategory {
     /// Adds a permission overwrite to the category's channels.
     ///
@@ -120,7 +118,6 @@ impl ChannelCategory {
     ///
     /// [Manage Channels]: Permissions::MANAGE_CHANNELS
     /// [Manage Roles]: Permissions::MANAGE_ROLES
-    #[cfg(feature = "utils")]
     pub async fn edit<F>(&mut self, cache_http: impl CacheHttp, f: F) -> Result<()>
     where
         F: FnOnce(&mut EditChannel) -> &mut EditChannel,
@@ -131,7 +128,7 @@ impl ChannelCategory {
 
         let mut edit_channel = EditChannel::default();
         f(&mut edit_channel);
-        let map = serenity_utils::hashmap_to_json_map(edit_channel.0);
+        let map = hashmap_to_json_map(edit_channel.0);
 
         cache_http.http().edit_channel(self.id.0, &map, None).await.map(|channel| {
             let GuildChannel {

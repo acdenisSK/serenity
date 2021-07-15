@@ -14,15 +14,17 @@ mod premium_tier;
 mod role;
 mod system_channel;
 
+use std::collections::HashMap;
+use std::result::Result as StdResult;
+
 use chrono::{DateTime, Utc};
 use futures::stream::StreamExt;
-use serde::de::Error as DeError;
-use serde::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::ser::{Serialize, Serializer};
 #[cfg(feature = "simd-json")]
-use simd_json::StaticNode;
-#[cfg(feature = "model")]
+use simd_json::{Mutable, StaticNode, ValueAccess};
 use tracing::error;
-#[cfg(all(feature = "model", feature = "cache"))]
+#[cfg(feature = "cache")]
 use tracing::warn;
 
 pub use self::audit_log::*;
@@ -35,8 +37,6 @@ pub use self::partial_guild::*;
 pub use self::premium_tier::*;
 pub use self::role::*;
 pub use self::system_channel::*;
-use super::utils::*;
-#[cfg(feature = "model")]
 use crate::builder::{
     CreateChannel,
     CreateSticker,
@@ -47,7 +47,7 @@ use crate::builder::{
     EditRole,
     EditSticker,
 };
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -58,13 +58,14 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
 use crate::constants::LARGE_THRESHOLD;
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::{CacheHttp, Http};
-#[cfg(all(feature = "http", feature = "model"))]
-use crate::json::json;
-#[cfg(all(feature = "model", feature = "unstable_discord_api"))]
+use crate::json::{from_number, from_value, json, JsonMap, Value, NULL};
+use crate::model::prelude::*;
+use crate::model::utils::*;
+use crate::Result;
+#[cfg(feature = "unstable_discord_api")]
 use crate::{
     builder::{
         CreateApplicationCommand,
@@ -73,10 +74,6 @@ use crate::{
         CreateApplicationCommandsPermissions,
     },
     model::interactions::application_command::{ApplicationCommand, ApplicationCommandPermission},
-};
-use crate::{
-    json::{from_number, from_value, prelude::*},
-    model::prelude::*,
 };
 
 /// A representation of a banning of a user.
@@ -264,7 +261,6 @@ pub struct Guild {
     pub stickers: HashMap<StickerId, Sticker>,
 }
 
-#[cfg(feature = "model")]
 impl Guild {
     #[cfg(feature = "cache")]
     async fn check_hierarchy(&self, cache: impl AsRef<Cache>, other_user: UserId) -> Result<()> {
@@ -2182,7 +2178,7 @@ impl Guild {
     /// total, consider using [`utils::shard_id`].
     ///
     /// [`utils::shard_id`]: crate::utils::shard_id
-    #[cfg(all(feature = "cache", feature = "utils"))]
+    #[cfg(feature = "cache")]
     #[inline]
     pub async fn shard_id(&self, cache: impl AsRef<Cache>) -> u64 {
         self.id.shard_id(&cache).await
@@ -2208,7 +2204,7 @@ impl Guild {
     ///
     /// assert_eq!(guild.shard_id(17), 7);
     /// ```
-    #[cfg(all(feature = "utils", not(feature = "cache")))]
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub async fn shard_id(&self, shard_count: u64) -> u64 {
         self.id.shard_id(shard_count).await
@@ -2773,13 +2769,11 @@ impl<'de> Deserialize<'de> for Guild {
 }
 
 /// Checks if a `&str` contains another `&str`.
-#[cfg(feature = "model")]
 fn contains_case_insensitive(to_look_at: &str, to_find: &str) -> bool {
     to_look_at.to_lowercase().contains(&to_find.to_lowercase())
 }
 
 /// Checks if a `&str` starts with another `&str`.
-#[cfg(feature = "model")]
 fn starts_with_case_insensitive(to_look_at: &str, to_find: &str) -> bool {
     to_look_at.to_lowercase().starts_with(&to_find.to_lowercase())
 }
@@ -2791,7 +2785,6 @@ fn starts_with_case_insensitive(to_look_at: &str, to_find: &str) -> bool {
 /// expected to contain `origin` as substring.
 /// If not, using `closest_to_origin` would sort these
 /// the end.
-#[cfg(feature = "model")]
 fn closest_to_origin(origin: &str, word_a: &str, word_b: &str) -> std::cmp::Ordering {
     let value_a = match word_a.find(origin) {
         Some(value) => value + word_a.len(),
@@ -2976,7 +2969,6 @@ pub struct GuildInfo {
     pub permissions: Permissions,
 }
 
-#[cfg(any(feature = "model", feature = "utils"))]
 impl GuildInfo {
     /// Returns the formatted URL of the guild's icon, if the guild has an icon.
     ///
@@ -3008,7 +3000,6 @@ impl From<u64> for GuildContainer {
     }
 }
 
-#[cfg(feature = "model")]
 impl InviteGuild {
     /// Returns the formatted URL of the guild's splash image, if one exists.
     pub fn splash_url(&self) -> Option<String> {
@@ -3038,7 +3029,6 @@ pub enum GuildStatus {
     Offline(GuildUnavailable),
 }
 
-#[cfg(feature = "model")]
 impl GuildStatus {
     /// Retrieves the Id of the inner [`Guild`].
     pub fn id(&self) -> GuildId {
@@ -3223,7 +3213,6 @@ enum_number!(NsfwLevel {
 
 #[cfg(test)]
 mod test {
-    #[cfg(feature = "model")]
     mod model {
         use std::collections::*;
 

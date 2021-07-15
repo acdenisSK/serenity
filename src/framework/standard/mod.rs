@@ -38,7 +38,7 @@ use crate::model::channel::Channel;
 #[cfg(feature = "cache")]
 use crate::model::guild::Member;
 use crate::model::{channel::Message, permissions::Permissions};
-#[cfg(all(feature = "cache", feature = "http", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::model::{guild::Role, id::RoleId};
 
 /// An enum representing all possible fail conditions under which a command won't
@@ -878,7 +878,7 @@ pub(crate) async fn has_correct_permissions(
     }
 }
 
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 pub(crate) fn has_correct_roles(
     options: &impl CommonOptions,
     roles: &HashMap<RoleId, Role>,

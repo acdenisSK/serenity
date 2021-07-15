@@ -1,13 +1,15 @@
 // FIXME: Remove after the removal of the `̀nsfw` field.
 #![allow(deprecated)]
 
-use serde::de::Error as DeError;
+use std::collections::HashMap;
+use std::result::Result as StdResult;
+
+use serde::de::{Deserialize, Deserializer, Error as DeError};
 #[cfg(feature = "simd-json")]
 use simd_json::StaticNode;
 #[cfg(feature = "cache")]
 use tracing::{error, warn};
 
-#[cfg(feature = "model")]
 use crate::builder::{
     CreateChannel,
     CreateSticker,
@@ -18,7 +20,7 @@ use crate::builder::{
     EditRole,
     EditSticker,
 };
-#[cfg(all(feature = "cache", feature = "utils", feature = "client"))]
+#[cfg(all(feature = "cache", feature = "client"))]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -29,10 +31,21 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::{CacheHttp, Http};
+use crate::json::from_value;
 use crate::json::{from_number, prelude::*};
-#[cfg(all(feature = "model", feature = "unstable_discord_api"))]
+use crate::model::prelude::*;
+use crate::model::utils::{
+    deserialize_emojis,
+    deserialize_roles,
+    deserialize_stickers,
+    serialize_emojis,
+    serialize_roles,
+    serialize_stickers,
+};
+use crate::Result;
+#[cfg(feature = "unstable_discord_api")]
 use crate::{
     builder::{
         CreateApplicationCommand,
@@ -42,7 +55,6 @@ use crate::{
     },
     model::interactions::application_command::{ApplicationCommand, ApplicationCommandPermission},
 };
-use crate::{json::from_value, model::prelude::*};
 
 /// Partial information about a [`Guild`]. This does not include information
 /// like member data.
@@ -165,7 +177,6 @@ pub struct PartialGuild {
     pub stickers: HashMap<StickerId, Sticker>,
 }
 
-#[cfg(feature = "model")]
 impl PartialGuild {
     /// Ban a [`User`] from the guild, deleting a number of
     /// days' worth of messages (`dmd`) between the range 0 and 7.
@@ -1363,7 +1374,7 @@ impl PartialGuild {
     /// total, consider using [`utils::shard_id`].
     ///
     /// [`utils::shard_id`]: crate::utils::shard_id
-    #[cfg(all(feature = "cache", feature = "utils"))]
+    #[cfg(feature = "cache")]
     #[inline]
     pub async fn shard_id(&self, cache: impl AsRef<Cache>) -> u64 {
         self.id.shard_id(cache).await
@@ -1389,7 +1400,7 @@ impl PartialGuild {
     ///
     /// assert_eq!(guild.shard_id(17), 7);
     /// ```
-    #[cfg(all(feature = "utils", not(feature = "cache")))]
+    #[cfg(not(feature = "cache"))]
     #[inline]
     pub async fn shard_id(&self, shard_count: u64) -> u64 {
         self.id.shard_id(shard_count).await

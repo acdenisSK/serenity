@@ -1,10 +1,6 @@
-#[cfg(feature = "model")]
 use crate::builder::CreateEmbed;
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
-#[cfg(feature = "model")]
-use crate::utils;
-#[cfg(feature = "utils")]
+use crate::json::hashmap_to_json_map;
 use crate::utils::Colour;
 
 /// Represents a rich embed which allows using richer markdown, multiple fields
@@ -23,13 +19,8 @@ pub struct Embed {
     /// Information about the author of the embed.
     pub author: Option<EmbedAuthor>,
     /// The colour code of the embed.
-    #[cfg(feature = "utils")]
     #[serde(rename = "color")]
     pub colour: Option<Colour>,
-    /// The colour code of the embed.
-    #[cfg(not(feature = "utils"))]
-    #[serde(default, rename = "color")]
-    pub colour: u32,
     /// The description of the embed.
     ///
     /// The maximum value for this field is 2048 unicode codepoints.
@@ -66,7 +57,6 @@ pub struct Embed {
     pub video: Option<EmbedVideo>,
 }
 
-#[cfg(feature = "model")]
 impl Embed {
     /// Creates a fake Embed, giving back a [`serde_json`] map.
     ///
@@ -94,7 +84,7 @@ impl Embed {
     {
         let mut create_embed = CreateEmbed::default();
         f(&mut create_embed);
-        let map = utils::hashmap_to_json_map(create_embed.0);
+        let map = hashmap_to_json_map(create_embed.0);
 
         Value::from(map)
     }

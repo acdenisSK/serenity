@@ -18,7 +18,7 @@ use super::Permissions;
 /// re-ban all members with an odd discriminator:
 ///
 /// ```rust,no_run
-/// # #[cfg(all(feature = "client", feature = "model"))]
+/// # #[cfg(feature = "client")]
 /// # async fn run() -> Result<(), Box<std::error::Error>> {
 /// use serenity::prelude::*;
 /// use serenity::model::prelude::*;

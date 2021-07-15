@@ -1,6 +1,5 @@
 //! A set of macros for easily working with internals.
 
-#[cfg(any(feature = "model", feature = "utils"))]
 macro_rules! cdn {
     ($e:expr) => {
         concat!("https://cdn.discordapp.com", $e)
@@ -10,7 +9,6 @@ macro_rules! cdn {
     };
 }
 
-#[cfg(feature = "http")]
 macro_rules! api {
     ($e:expr) => {
         concat!("https://discord.com/api/v9", $e)
@@ -20,7 +18,6 @@ macro_rules! api {
     };
 }
 
-#[cfg(feature = "http")]
 macro_rules! status {
     ($e:expr) => {
         concat!("https://status.discord.com/api/v2", $e)

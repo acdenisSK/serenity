@@ -1,10 +1,6 @@
-#[cfg(feature = "model")]
 use crate::builder::EditSticker;
-#[cfg(feature = "model")]
 use crate::http::Http;
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
-#[cfg(feature = "model")]
 use crate::model::prelude::*;
 use crate::model::{
     id::{GuildId, StickerId, StickerPackId},
@@ -60,7 +56,6 @@ pub struct Sticker {
     pub sort_value: Option<u64>,
 }
 
-#[cfg(feature = "model")]
 impl Sticker {
     /// Deletes a [`Sticker`] by Id from the guild.
     ///
@@ -158,7 +153,6 @@ enum_number!(StickerFormatType {
     Lottie
 });
 
-#[cfg(feature = "model")]
 fn sticker_url(sticker_id: StickerId, sticker_format_type: StickerFormatType) -> Option<String> {
     let ext = match sticker_format_type {
         StickerFormatType::Png | StickerFormatType::Apng => "png",

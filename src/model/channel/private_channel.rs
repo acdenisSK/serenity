@@ -1,16 +1,14 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
-#[cfg(feature = "model")]
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 
-#[cfg(feature = "model")]
 use crate::builder::{CreateMessage, EditMessage, GetMessages};
-#[cfg(feature = "model")]
 use crate::http::AttachmentType;
-#[cfg(feature = "http")]
 use crate::http::{Http, Typing};
 use crate::model::prelude::*;
+use crate::model::utils::{deserialize_single_recipient, serialize_single_recipient};
+use crate::Result;
 
 /// A Direct Message text channel with another user.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -38,7 +36,6 @@ pub struct PrivateChannel {
     pub recipient: User,
 }
 
-#[cfg(feature = "model")]
 impl PrivateChannel {
     /// Broadcasts that the current user is typing to the recipient.
     ///

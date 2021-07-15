@@ -88,7 +88,7 @@ impl CreateInvite {
     /// # use serenity::framework::standard::{CommandResult, macros::command};
     /// # use serenity::model::id::ChannelId;
     /// #
-    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework", feature = "http"))]
+    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework"))]
     /// # #[command]
     /// # async fn example(context: &Context) -> CommandResult {
     /// #     let channel = context.cache.guild_channel(81384788765712384).await.unwrap();
@@ -122,7 +122,7 @@ impl CreateInvite {
     /// # use serenity::framework::standard::{CommandResult, macros::command};
     /// # use serenity::model::id::ChannelId;
     /// #
-    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework", feature = "http"))]
+    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework"))]
     /// # #[command]
     /// # async fn example(context: &Context) -> CommandResult {
     /// #     let channel = context.cache.guild_channel(81384788765712384).await.unwrap();
@@ -154,7 +154,7 @@ impl CreateInvite {
     /// # use serenity::framework::standard::{CommandResult, macros::command};
     /// # use serenity::model::id::ChannelId;
     /// #
-    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework", feature = "http"))]
+    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework"))]
     /// # #[command]
     /// # async fn example(context: &Context) -> CommandResult {
     /// #     let channel = context.cache.guild_channel(81384788765712384).await.unwrap();
@@ -188,7 +188,7 @@ impl CreateInvite {
     /// # use serenity::framework::standard::{CommandResult, macros::command};
     /// # use serenity::model::id::ChannelId;
     /// #
-    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework", feature = "http"))]
+    /// # #[cfg(all(feature = "cache", feature = "client", feature = "framework"))]
     /// # #[command]
     /// # async fn example(context: &Context) -> CommandResult {
     /// #     let channel = context.cache.guild_channel(81384788765712384).await.unwrap();

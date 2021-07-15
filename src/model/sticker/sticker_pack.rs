@@ -25,7 +25,6 @@ pub struct StickerPack {
     pub banner_asset_id: StickerPackBannerId,
 }
 
-#[cfg(feature = "model")]
 impl StickerPack {
     /// Returns the sticker that is shown as the pack's icon
     pub fn cover_sticker(&self) -> Option<&Sticker> {
@@ -37,7 +36,6 @@ impl StickerPack {
     }
 }
 
-#[cfg(feature = "model")]
 fn banner_url(banner_asset_id: StickerPackBannerId) -> String {
     cdn!("/app-assets/710982414301790216/store/{}.webp?size=1024", banner_asset_id.0)
 }

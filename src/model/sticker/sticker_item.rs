@@ -1,8 +1,5 @@
-#[cfg(feature = "model")]
 use super::sticker_url;
-#[cfg(feature = "model")]
 use crate::http::Http;
-#[cfg(feature = "model")]
 use crate::internal::prelude::*;
 use crate::model::prelude::*;
 
@@ -18,7 +15,6 @@ pub struct StickerItem {
     pub format_type: StickerFormatType,
 }
 
-#[cfg(feature = "model")]
 impl StickerItem {
     /// Requests the sticker via the REST API to get a [`Sticker`] with all
     /// details.

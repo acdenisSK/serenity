@@ -1,19 +1,20 @@
+use std::fmt::{Formatter, Result as FmtResult};
 use std::{collections::HashMap, hash::Hash};
 
 use serde::de::Error as DeError;
-use serde::de::MapAccess;
+use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 #[cfg(feature = "simd-json")]
 use simd_json::ValueAccess;
 
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use super::permissions::Permissions;
 use super::prelude::*;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "cache")]
 use crate::internal::prelude::*;
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 use crate::model::interactions::application_command::*;
 
 pub fn default_true() -> bool {
@@ -74,7 +75,7 @@ pub fn deserialize_members<'de, D: Deserializer<'de>>(
     Ok(members)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_partial_members_map<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> StdResult<HashMap<UserId, PartialMember>, D::Error> {
@@ -83,7 +84,7 @@ pub fn deserialize_partial_members_map<'de, D: Deserializer<'de>>(
     Ok(map)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_users<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> StdResult<HashMap<UserId, User>, D::Error> {
@@ -92,7 +93,7 @@ pub fn deserialize_users<'de, D: Deserializer<'de>>(
     Ok(map)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_roles_map<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> StdResult<HashMap<RoleId, Role>, D::Error> {
@@ -101,7 +102,7 @@ pub fn deserialize_roles_map<'de, D: Deserializer<'de>>(
     Ok(map)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_channels_map<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> StdResult<HashMap<ChannelId, PartialChannel>, D::Error> {
@@ -110,7 +111,7 @@ pub fn deserialize_channels_map<'de, D: Deserializer<'de>>(
     Ok(map)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_options<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> StdResult<Vec<ApplicationCommandInteractionDataOption>, D::Error> {
@@ -120,7 +121,7 @@ pub fn deserialize_options<'de, D: Deserializer<'de>>(
     Ok(options)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 pub fn deserialize_options_with_resolved<'de, D: Deserializer<'de>>(
     deserializer: D,
     resolved: &ApplicationCommandInteractionDataResolved,
@@ -135,7 +136,7 @@ pub fn deserialize_options_with_resolved<'de, D: Deserializer<'de>>(
     Ok(options)
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 fn set_resolved(
     mut options: &mut ApplicationCommandInteractionDataOption,
     resolved: &ApplicationCommandInteractionDataResolved,
@@ -194,7 +195,7 @@ fn set_resolved(
     }
 }
 
-#[cfg(all(feature = "unstable_discord_api", feature = "model"))]
+#[cfg(feature = "unstable_discord_api")]
 fn loop_resolved(
     options: &mut ApplicationCommandInteractionDataOption,
     resolved: &ApplicationCommandInteractionDataResolved,
@@ -415,7 +416,7 @@ pub fn serialize_gen_map<K: Eq + Hash, S: Serializer, V: Serialize>(
 /// Tries to find a user's permissions using the cache.
 /// Unlike [`user_has_perms`], this function will return `true` even when
 /// the permissions are not in the cache.
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 #[inline]
 pub async fn user_has_perms_cache(
     cache: impl AsRef<Cache>,
@@ -433,7 +434,7 @@ pub async fn user_has_perms_cache(
     }
 }
 
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 pub async fn user_has_perms(
     cache: impl AsRef<Cache>,
     channel_id: ChannelId,

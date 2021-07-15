@@ -314,10 +314,7 @@ async fn dispatch_message(
     mut message: Message,
     event_handler: &Arc<dyn EventHandler>,
 ) {
-    #[cfg(feature = "model")]
-    {
-        message.transform_content();
-    }
+    message.transform_content();
 
     let event_handler = Arc::clone(event_handler);
 

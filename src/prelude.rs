@@ -25,8 +25,6 @@ pub use crate::client::{Client, ClientError, EventHandler, RawEventHandler};
 pub use crate::error::Error as SerenityError;
 #[cfg(feature = "gateway")]
 pub use crate::gateway::GatewayError;
-#[cfg(feature = "http")]
 pub use crate::http::HttpError;
 pub use crate::model::misc::Mentionable;
-#[cfg(feature = "model")]
 pub use crate::model::ModelError;

@@ -5,8 +5,7 @@ use super::CreateEmbed;
 use crate::builder::CreateComponents;
 use crate::http::AttachmentType;
 use crate::internal::prelude::*;
-use crate::json::from_number;
-use crate::utils;
+use crate::json::{from_number, hashmap_to_json_map};
 
 /// A builder to specify the fields to edit in an existing message.
 ///
@@ -21,7 +20,7 @@ use crate::utils;
 /// # #[cfg(feature = "framework")]
 /// # use serenity::framework::standard::{CommandResult, macros::command};
 /// #
-/// # #[cfg(all(feature = "model", feature = "utils", feature = "framework"))]
+/// # #[cfg(feature = "framework")]
 /// # #[command]
 /// # async fn example(ctx: &Context) -> CommandResult {
 /// # let mut message = ChannelId(7).message(&ctx, MessageId(8)).await?;
@@ -48,7 +47,7 @@ impl<'a> EditMessage<'a> {
     }
 
     fn _add_embed(&mut self, embed: CreateEmbed) -> &mut Self {
-        let map = utils::hashmap_to_json_map(embed.0);
+        let map = hashmap_to_json_map(embed.0);
         let embed = Value::from(map);
 
         let embeds = self.0.entry("embeds").or_insert_with(|| Value::from(Vec::<Value>::new()));

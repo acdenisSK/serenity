@@ -6,12 +6,10 @@ use std::{
     fmt::{self, Display, Formatter, Result as FmtResult, Write as FmtWrite},
 };
 
-use serde::de::{Deserialize, Error as DeError, MapAccess, Visitor};
+use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeMap, Serializer};
-#[cfg(feature = "model")]
 use tracing::warn;
 
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http};
 use crate::internal::prelude::*;
 use crate::model::prelude::*;
@@ -107,7 +105,6 @@ impl<'de> Deserialize<'de> for Reaction {
     }
 }
 
-#[cfg(feature = "model")]
 impl Reaction {
     /// Retrieves the associated the reaction was made in.
     ///
@@ -438,7 +435,6 @@ impl Serialize for ReactionType {
     }
 }
 
-#[cfg(feature = "model")]
 impl ReactionType {
     /// Creates a data-esque display of the type. This is not very useful for
     /// displaying, as the primary client can not render it, but can be useful
@@ -499,7 +495,7 @@ impl From<char> for ReactionType {
     /// # use serenity::framework::standard::{CommandResult, macros::command};
     /// # use serenity::model::id::ChannelId;
     /// #
-    /// # #[cfg(all(feature = "client", feature = "framework", feature = "http"))]
+    /// # #[cfg(all(feature = "client", feature = "framework"))]
     /// # #[command]
     /// # async fn example(ctx: &Context) -> CommandResult {
     /// #   let message = ChannelId(0).message(&ctx.http, 0).await?;

@@ -1,27 +1,25 @@
-#[cfg(feature = "model")]
 use std::borrow::Cow;
 use std::cmp::Reverse;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[cfg(feature = "model")]
 use bitflags::__impl_bitflags;
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer};
+use serde::ser::{Serialize, Serializer};
 
-#[cfg(feature = "model")]
 use crate::builder::EditMember;
-#[cfg(all(feature = "cache"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::{CacheHttp, Http};
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::internal::prelude::*;
+use crate::json::hashmap_to_json_map;
 #[cfg(feature = "unstable_discord_api")]
 use crate::model::permissions::Permissions;
 use crate::model::prelude::*;
-#[cfg(feature = "model")]
-use crate::utils;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+use crate::model::utils::U64Visitor;
+#[cfg(feature = "cache")]
 use crate::utils::Colour;
 
 /// Information about a member of a guild.
@@ -61,7 +59,6 @@ pub struct Member {
     pub avatar: Option<String>,
 }
 
-#[cfg(feature = "model")]
 impl Member {
     /// Adds a [`Role`] to the member, editing its roles in-place if the request
     /// was successful.
@@ -119,7 +116,7 @@ impl Member {
 
         let mut builder = EditMember::default();
         builder.roles(&self.roles);
-        let map = utils::hashmap_to_json_map(builder.0);
+        let map = hashmap_to_json_map(builder.0);
 
         match http.as_ref().edit_member(self.guild_id.0, self.user.id.0, &map, None).await {
             Ok(member) => Ok(member.roles),
@@ -233,7 +230,7 @@ impl Member {
     {
         let mut edit_member = EditMember::default();
         f(&mut edit_member);
-        let map = utils::hashmap_to_json_map(edit_member.0);
+        let map = hashmap_to_json_map(edit_member.0);
 
         http.as_ref().edit_member(self.guild_id.0, self.user.id.0, &map, None).await
     }
@@ -480,7 +477,7 @@ impl Member {
 
         let mut builder = EditMember::default();
         builder.roles(&self.roles);
-        let map = utils::hashmap_to_json_map(builder.0);
+        let map = hashmap_to_json_map(builder.0);
 
         match http.as_ref().edit_member(self.guild_id.0, self.user.id.0, &map, None).await {
             Ok(member) => Ok(member.roles),
@@ -600,7 +597,6 @@ pub struct PartialMember {
     pub permissions: Option<Permissions>,
 }
 
-#[cfg(feature = "model")]
 fn avatar_url(guild_id: GuildId, user_id: UserId, hash: Option<&String>) -> Option<String> {
     hash.map(|hash| {
         let ext = if hash.starts_with("a_") { "gif" } else { "webp" };

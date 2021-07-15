@@ -10,13 +10,13 @@ mod partial_channel;
 mod private_channel;
 mod reaction;
 
-#[cfg(feature = "model")]
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
 
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use serde::de::{Error as DeError, Unexpected};
+use serde::de::{Deserialize, Deserializer, Error as DeError, Unexpected};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 pub use self::attachment::*;
@@ -28,17 +28,17 @@ pub use self::message::*;
 pub use self::partial_channel::*;
 pub use self::private_channel::*;
 pub use self::reaction::*;
-use super::utils::deserialize_u64;
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use crate::cache::FromStrAndCache;
-#[cfg(feature = "model")]
 use crate::http::CacheHttp;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 use crate::model::misc::ChannelParseError;
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+use crate::model::utils::{deserialize_u64, serialize_u64};
+#[cfg(feature = "cache")]
 use crate::utils::parse_channel;
+use crate::Result;
 use crate::{json::prelude::*, model::prelude::*};
 
 /// A container for any channel.
@@ -58,7 +58,6 @@ pub enum Channel {
     Category(ChannelCategory),
 }
 
-#[cfg(feature = "model")]
 impl Channel {
     /// Converts from [`Channel`] to `Option<GuildChannel>`.
     ///
@@ -71,7 +70,7 @@ impl Channel {
     /// Basic usage:
     ///
     /// ```rust,no_run
-    /// # #[cfg(all(feature = "model", feature = "cache"))]
+    /// # #[cfg(feature = "cache")]
     /// # async fn run() {
     /// # use serenity::{cache::Cache, model::id::ChannelId};
     /// # use tokio::sync::RwLock;
@@ -106,7 +105,7 @@ impl Channel {
     /// Basic usage:
     ///
     /// ```rust,no_run
-    /// # #[cfg(all(feature = "model", feature = "cache"))]
+    /// # #[cfg(feature = "cache")]
     /// # async fn run() {
     /// # use serenity::{cache::Cache, model::id::ChannelId};
     /// # use tokio::sync::RwLock;
@@ -141,7 +140,7 @@ impl Channel {
     /// Basic usage:
     ///
     /// ```rust,no_run
-    /// # #[cfg(all(feature = "model", feature = "cache"))]
+    /// # #[cfg(feature = "cache")]
     /// # async fn run() {
     /// # use serenity::{cache::Cache, model::id::ChannelId};
     /// # use tokio::sync::RwLock;
@@ -484,7 +483,6 @@ pub struct ThreadsData {
 
 #[cfg(test)]
 mod test {
-    #[cfg(all(feature = "model", feature = "utils"))]
     mod model_utils {
         use crate::model::prelude::*;
 
@@ -563,7 +561,7 @@ mod test {
     }
 }
 
-#[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+#[cfg(feature = "cache")]
 #[async_trait]
 impl FromStrAndCache for Channel {
     type Err = ChannelParseError;

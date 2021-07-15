@@ -234,7 +234,7 @@ pub struct CommandGroup {
 }
 
 #[cfg(test)]
-#[cfg(all(feature = "cache", feature = "http"))]
+#[cfg(feature = "cache")]
 mod levenshtein_tests {
     use super::HelpBehaviour;
 

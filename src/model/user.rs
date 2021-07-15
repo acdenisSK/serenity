@@ -1,8 +1,7 @@
 //! User information-related models.
 
-use std::fmt;
-#[cfg(feature = "model")]
-use std::fmt::Write;
+use std::collections::HashMap;
+use std::fmt::{self, Write};
 
 use bitflags::__impl_bitflags;
 use futures::future::{BoxFuture, FutureExt};
@@ -10,9 +9,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::prelude::*;
 use super::utils::deserialize_u16;
-#[cfg(feature = "model")]
 use crate::builder::{CreateBotAuthParameters, CreateMessage, EditProfile};
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -23,15 +21,10 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
 use crate::http::GuildPagination;
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http};
-#[cfg(feature = "model")]
-use crate::json::json;
-use crate::json::to_string;
-#[cfg(feature = "model")]
-use crate::utils;
+use crate::json::{hashmap_to_json_map, json, to_string};
+use crate::model::utils::U32Visitor;
 use crate::{internal::prelude::*, model::misc::Mentionable};
 
 /// Information about the current user.
@@ -52,7 +45,6 @@ pub struct CurrentUser {
     pub public_flags: Option<UserPublicFlags>,
 }
 
-#[cfg(feature = "model")]
 impl CurrentUser {
     /// Returns the formatted URL of the user's icon, if one exists.
     ///
@@ -139,7 +131,7 @@ impl CurrentUser {
 
         let mut edit_profile = EditProfile(map);
         f(&mut edit_profile);
-        let map = utils::hashmap_to_json_map(edit_profile.0);
+        let map = hashmap_to_json_map(edit_profile.0);
 
         *self = http.as_ref().edit_profile(&map).await?;
 
@@ -577,7 +569,6 @@ impl Default for User {
 
 use std::hash::{Hash, Hasher};
 
-#[cfg(feature = "model")]
 use chrono::{DateTime, Utc};
 
 impl PartialEq for User {
@@ -594,7 +585,6 @@ impl Hash for User {
     }
 }
 
-#[cfg(feature = "model")]
 impl User {
     /// Returns the formatted URL of the user's icon, if one exists.
     ///
@@ -958,7 +948,6 @@ impl fmt::Display for User {
     }
 }
 
-#[cfg(feature = "model")]
 impl UserId {
     /// Creates a direct message channel between the [current user] and the
     /// user. This can also retrieve the channel if one already exists.
@@ -1100,7 +1089,6 @@ impl<'a> From<&'a User> for UserId {
     }
 }
 
-#[cfg(feature = "model")]
 fn avatar_url(user_id: UserId, hash: Option<&String>) -> Option<String> {
     hash.map(|hash| {
         let ext = if hash.starts_with("a_") { "gif" } else { "webp" };
@@ -1109,17 +1097,14 @@ fn avatar_url(user_id: UserId, hash: Option<&String>) -> Option<String> {
     })
 }
 
-#[cfg(feature = "model")]
 fn default_avatar_url(discriminator: u16) -> String {
     cdn!("/embed/avatars/{}.png", discriminator % 5u16)
 }
 
-#[cfg(feature = "model")]
 fn static_avatar_url(user_id: UserId, hash: Option<&String>) -> Option<String> {
     hash.map(|hash| cdn!("/avatars/{}/{}.webp?size=1024", user_id, hash))
 }
 
-#[cfg(feature = "model")]
 fn tag(name: &str, discriminator: u16) -> String {
     // 32: max length of username
     // 1: `#`
@@ -1137,7 +1122,6 @@ fn tag(name: &str, discriminator: u16) -> String {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    #[cfg(feature = "model")]
     mod model {
         use crate::model::user::User;
 

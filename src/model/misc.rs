@@ -1,15 +1,13 @@
 //! Miscellaneous helper traits, enums, and structs for models.
 
-#[cfg(all(feature = "model", feature = "utils"))]
 use std::error::Error as StdError;
-use std::fmt;
-#[cfg(all(feature = "model", feature = "utils"))]
+use std::fmt::{self, Display, Formatter};
 use std::result::Result as StdResult;
-#[cfg(all(feature = "model", feature = "utils"))]
 use std::str::FromStr;
 
-use super::prelude::*;
-#[cfg(all(feature = "model", any(feature = "cache", feature = "utils")))]
+use crate::error::Error;
+use crate::model::prelude::*;
+#[cfg(feature = "cache")]
 use crate::utils;
 
 /// Allows something - such as a channel or role - to be mentioned in a message.
@@ -171,7 +169,6 @@ mentionable!(v = v,
     GuildChannel;
 );
 
-#[cfg(all(feature = "model", feature = "utils"))]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UserParseError {
@@ -179,7 +176,6 @@ pub enum UserParseError {
     Rest(Box<Error>),
 }
 
-#[cfg(all(feature = "model", feature = "utils"))]
 impl fmt::Display for UserParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -189,19 +185,16 @@ impl fmt::Display for UserParseError {
     }
 }
 
-#[cfg(all(feature = "model", feature = "utils"))]
 impl StdError for UserParseError {}
 
 macro_rules! impl_from_str {
     (id: $($id:ident, $err:ident, $parse_function:ident;)*) => {
         $(
-            #[cfg(all(feature = "model", feature = "utils"))]
             #[derive(Debug)]
             pub enum $err {
                 InvalidFormat,
             }
 
-            #[cfg(all(feature = "model", feature = "utils"))]
             impl fmt::Display for $err {
                 fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                     match self {
@@ -210,10 +203,8 @@ macro_rules! impl_from_str {
                 }
             }
 
-            #[cfg(all(feature = "model", feature = "utils"))]
             impl StdError for $err {}
 
-            #[cfg(all(feature = "model", feature = "utils"))]
             impl FromStr for $id {
                 type Err = $err;
 
@@ -231,14 +222,14 @@ macro_rules! impl_from_str {
 
     (struct: $($struct:ty, $id:tt, $err:ident, $invalid_variant:tt, $parse_fn:ident, $desc:expr;)*) => {
         $(
-            #[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+            #[cfg(feature = "cache")]
             #[derive(Debug)]
             pub enum $err {
                 NotPresentInCache,
                 $invalid_variant,
             }
 
-            #[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+            #[cfg(feature = "cache")]
             impl fmt::Display for $err {
                 fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                     match self {
@@ -248,7 +239,7 @@ macro_rules! impl_from_str {
                 }
             }
 
-            #[cfg(all(feature = "cache", feature = "model", feature = "utils"))]
+            #[cfg(feature = "cache")]
             impl StdError for $err {}
         )*
     };
@@ -277,7 +268,6 @@ pub struct EmojiIdentifier {
     pub name: String,
 }
 
-#[cfg(all(feature = "model", feature = "utils"))]
 impl EmojiIdentifier {
     /// Generates a URL to the emoji's image.
     pub fn url(&self) -> String {
@@ -288,7 +278,6 @@ impl EmojiIdentifier {
     }
 }
 
-#[cfg(all(feature = "model", feature = "utils"))]
 impl FromStr for EmojiIdentifier {
     type Err = ();
 
@@ -379,7 +368,6 @@ mod test {
         assert_eq!(UserId(5).to_string(), "5");
     }
 
-    #[cfg(feature = "utils")]
     mod utils {
         use crate::model::prelude::*;
         use crate::utils::Colour;

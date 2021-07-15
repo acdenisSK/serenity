@@ -179,7 +179,6 @@ impl Serialize for GatewayIntents {
     }
 }
 
-#[cfg(feature = "model")]
 impl GatewayIntents {
     /// Gets all of the intents that don't are considered privileged by Discord.
     pub const fn non_privileged() -> GatewayIntents {

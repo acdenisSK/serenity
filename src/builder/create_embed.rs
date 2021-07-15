@@ -19,11 +19,8 @@ use std::fmt::Display;
 
 use chrono::{DateTime, TimeZone};
 
-use crate::json::Value;
-use crate::json::{from_number, json};
+use crate::json::{from_number, hashmap_to_json_map, json, Value};
 use crate::model::channel::Embed;
-use crate::utils;
-#[cfg(feature = "utils")]
 use crate::utils::Colour;
 
 /// A builder to create a fake [`Embed`] object, for use with the
@@ -56,7 +53,7 @@ impl CreateEmbed {
 
     /// Set the author of the embed.
     pub fn set_author(&mut self, author: CreateEmbedAuthor) -> &mut Self {
-        let map = utils::hashmap_to_json_map(author.0);
+        let map = hashmap_to_json_map(author.0);
 
         self.0.insert("author", Value::from(map));
         self
@@ -65,7 +62,6 @@ impl CreateEmbed {
     /// Set the colour of the left-hand side of the embed.
     ///
     /// This is an alias of [`Self::colour`].
-    #[cfg(feature = "utils")]
     #[inline]
     pub fn color<C: Into<Colour>>(&mut self, colour: C) -> &mut Self {
         self.colour(colour);
@@ -73,33 +69,14 @@ impl CreateEmbed {
     }
 
     /// Set the colour of the left-hand side of the embed.
-    #[cfg(feature = "utils")]
     #[inline]
     pub fn colour<C: Into<Colour>>(&mut self, colour: C) -> &mut Self {
         self._colour(colour.into());
         self
     }
 
-    #[cfg(feature = "utils")]
     fn _colour(&mut self, colour: Colour) {
         self.0.insert("color", from_number(u64::from(colour.0)));
-    }
-
-    /// Set the colour of the left-hand side of the embed.
-    ///
-    /// This is an alias of [`colour`].
-    #[cfg(not(feature = "utils"))]
-    #[inline]
-    pub fn color(&mut self, colour: u32) -> &mut Self {
-        self.colour(colour);
-        self
-    }
-
-    /// Set the colour of the left-hand side of the embed.
-    #[cfg(not(feature = "utils"))]
-    pub fn colour(&mut self, colour: u32) -> &mut Self {
-        self.0.insert("color", from_number(colour));
-        self
     }
 
     /// Set the description of the embed.
@@ -172,7 +149,7 @@ impl CreateEmbed {
     /// Set the footer of the embed.
     pub fn set_footer(&mut self, create_embed_footer: CreateEmbedFooter) -> &mut Self {
         let footer = create_embed_footer.0;
-        let map = utils::hashmap_to_json_map(footer);
+        let map = hashmap_to_json_map(footer);
 
         self.0.insert("footer", Value::from(map));
         self

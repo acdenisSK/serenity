@@ -1,20 +1,14 @@
-#[cfg(feature = "model")]
 use std::fmt::Write as FmtWrite;
-#[cfg(feature = "model")]
 use std::sync::Arc;
 
-#[cfg(feature = "model")]
 use bytes::buf::Buf;
 use futures::stream::Stream;
-#[cfg(feature = "model")]
 use reqwest::Url;
-#[cfg(feature = "model")]
 use tokio::{fs::File, io::AsyncReadExt};
 
-#[cfg(feature = "model")]
 use crate::builder::{CreateInvite, CreateMessage, EditChannel, EditMessage, GetMessages};
 use crate::builder::{CreateStageInstance, EditStageInstance};
-#[cfg(all(feature = "cache", feature = "model"))]
+#[cfg(feature = "cache")]
 use crate::cache::Cache;
 #[cfg(feature = "collector")]
 use crate::client::bridge::gateway::ShardMessenger;
@@ -25,17 +19,13 @@ use crate::collector::{
     MessageCollectorBuilder,
     ReactionCollectorBuilder,
 };
-#[cfg(feature = "model")]
+use crate::error::Error;
 use crate::http::AttachmentType;
-#[cfg(feature = "model")]
 use crate::http::{CacheHttp, Http, Typing};
-#[cfg(feature = "model")]
-use crate::json::json;
+use crate::json::{hashmap_to_json_map, json, Value};
 use crate::model::prelude::*;
-#[cfg(all(feature = "model", feature = "utils"))]
-use crate::utils;
+use crate::Result;
 
-#[cfg(feature = "model")]
 impl ChannelId {
     /// Broadcasts that the current user is typing to a channel for the next 5
     /// seconds.
@@ -79,7 +69,6 @@ impl ChannelId {
     /// Returns [`Error::Http`] if the current user lacks permission.
     ///
     /// [Create Invite]: Permissions::CREATE_INVITE
-    #[cfg(feature = "utils")]
     pub async fn create_invite<F>(&self, http: impl AsRef<Http>, f: F) -> Result<RichInvite>
     where
         F: FnOnce(&mut CreateInvite) -> &mut CreateInvite,
@@ -87,7 +76,7 @@ impl ChannelId {
         let mut invite = CreateInvite::default();
         f(&mut invite);
 
-        let map = utils::hashmap_to_json_map(invite.0);
+        let map = hashmap_to_json_map(invite.0);
 
         http.as_ref().create_invite(self.0, &map, None).await
     }
@@ -326,7 +315,6 @@ impl ChannelId {
     /// or if an invalid value is set.
     ///
     /// [Manage Channel]: Permissions::MANAGE_CHANNELS
-    #[cfg(feature = "utils")]
     #[inline]
     pub async fn edit<F>(self, http: impl AsRef<Http>, f: F) -> Result<GuildChannel>
     where
@@ -335,7 +323,7 @@ impl ChannelId {
         let mut channel = EditChannel::default();
         f(&mut channel);
 
-        let map = utils::hashmap_to_json_map(channel.0);
+        let map = hashmap_to_json_map(channel.0);
 
         http.as_ref().edit_channel(self.0, &map, None).await
     }
@@ -357,7 +345,6 @@ impl ChannelId {
     ///
     /// [`EditMessage`]: crate::builder::EditMessage
     /// [`the limit`]: crate::builder::EditMessage::content
-    #[cfg(feature = "utils")]
     #[inline]
     pub async fn edit_message<F>(
         self,
@@ -377,7 +364,7 @@ impl ChannelId {
             }
         }
 
-        let map = utils::hashmap_to_json_map(msg.0);
+        let map = hashmap_to_json_map(msg.0);
 
         http.as_ref()
             .edit_message_and_attachments(self.0, message_id.into().0, &Value::from(map), msg.1)
@@ -716,7 +703,6 @@ impl ChannelId {
     /// [Attach Files]: Permissions::ATTACH_FILES
     /// [Send Messages]: Permissions::SEND_MESSAGES
     /// [`File`]: tokio::fs::File
-    #[cfg(feature = "utils")]
     pub async fn send_files<'a, F, T, It>(
         self,
         http: impl AsRef<Http>,
@@ -731,7 +717,7 @@ impl ChannelId {
         let mut create_message = CreateMessage::default();
         let msg = f(&mut create_message);
 
-        let map = utils::hashmap_to_json_map(msg.0.clone());
+        let map = hashmap_to_json_map(msg.0.clone());
 
         Message::check_lengths(&map)?;
 
@@ -758,7 +744,6 @@ impl ChannelId {
     ///
     /// [`CreateMessage`]: crate::builder::CreateMessage
     /// [Send Messages]: Permissions::SEND_MESSAGES
-    #[cfg(feature = "utils")]
     pub async fn send_message<'a, F>(self, http: impl AsRef<Http>, f: F) -> Result<Message>
     where
         for<'b> F: FnOnce(&'b mut CreateMessage<'a>) -> &'b mut CreateMessage<'a>,
@@ -766,7 +751,7 @@ impl ChannelId {
         let mut create_message = CreateMessage::default();
         let msg = f(&mut create_message);
 
-        let map = utils::hashmap_to_json_map(msg.0.clone());
+        let map = hashmap_to_json_map(msg.0.clone());
 
         Message::check_lengths(&map)?;
 
@@ -999,7 +984,7 @@ impl ChannelId {
         let mut instance = CreateStageInstance::default();
         f(&mut instance);
 
-        let map = utils::hashmap_to_json_map(instance.0);
+        let map = hashmap_to_json_map(instance.0);
 
         http.as_ref().create_stage_instance(&Value::from(map)).await
     }
@@ -1021,7 +1006,7 @@ impl ChannelId {
         let mut instance = EditStageInstance::default();
         f(&mut instance);
 
-        let map = utils::hashmap_to_json_map(instance.0);
+        let map = hashmap_to_json_map(instance.0);
 
         http.as_ref().edit_stage_instance(self.0, &Value::from(map)).await
     }
@@ -1185,7 +1170,6 @@ impl<'a> From<&'a GuildChannel> for ChannelId {
 
 /// A helper class returned by [`ChannelId::messages_iter`]
 #[derive(Clone, Debug)]
-#[cfg(feature = "model")]
 pub struct MessagesIter<H: AsRef<Http>> {
     http: H,
     channel_id: ChannelId,
@@ -1194,7 +1178,6 @@ pub struct MessagesIter<H: AsRef<Http>> {
     tried_fetch: bool,
 }
 
-#[cfg(feature = "model")]
 impl<H: AsRef<Http>> MessagesIter<H> {
     fn new(http: H, channel_id: ChannelId) -> MessagesIter<H> {
         MessagesIter {

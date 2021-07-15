@@ -1,12 +1,15 @@
 //! Models pertaining to the gateway.
 
+use std::collections::HashMap;
+use std::result::Result as StdResult;
+
 use bitflags::bitflags;
-use serde::de::Error as DeError;
+use serde::de::{Deserialize, Deserializer, Error as DeError};
 use url::Url;
 
 use super::prelude::*;
 use super::utils::*;
-use crate::json::from_value;
+use crate::json::{from_value, JsonMap};
 
 /// A representation of the data retrieved from the bot gateway endpoint.
 ///
@@ -76,7 +79,6 @@ pub struct Activity {
     pub buttons: Vec<ActivityButton>,
 }
 
-#[cfg(feature = "model")]
 impl Activity {
     /// Creates a [`Activity`] struct that appears as a `Playing <name>` status.
     ///

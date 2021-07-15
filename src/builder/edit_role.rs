@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::internal::prelude::*;
 use crate::json::from_number;
 use crate::model::{guild::Role, Permissions};
+use crate::utils::Colour;
 
 /// A builder to create or edit a [`Role`] for use via a number of model methods.
 ///
@@ -48,16 +49,7 @@ impl EditRole {
     pub fn new(role: &Role) -> Self {
         let mut map = HashMap::with_capacity(8);
 
-        #[cfg(feature = "utils")]
-        {
-            map.insert("color", from_number(role.colour.0));
-        }
-
-        #[cfg(not(feature = "utils"))]
-        {
-            map.insert("color", from_number(role.colour));
-        }
-
+        map.insert("color", from_number(role.colour.0));
         map.insert("hoist", Value::from(role.hoist));
         map.insert("managed", Value::from(role.managed));
         map.insert("mentionable", Value::from(role.mentionable));
@@ -69,8 +61,8 @@ impl EditRole {
     }
 
     /// Sets the colour of the role.
-    pub fn colour(&mut self, colour: u64) -> &mut Self {
-        self.0.insert("color", from_number(colour));
+    pub fn colour<C: Into<Colour>>(&mut self, colour: C) -> &mut Self {
+        self.0.insert("color", from_number(colour.into().0 as u64));
         self
     }
 
